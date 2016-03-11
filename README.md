@@ -15,3 +15,5 @@ export RTE_TARGET=x86_64-native-linuxapp-gcc
 Add & Mount Huge page.
 
 make clean; make; ./build/PktBlaster  -c <<core mask>> -n <<memory controller count>>
+
+[[stats.png]]
