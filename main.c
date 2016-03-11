@@ -6,9 +6,11 @@
 #define MAX_TX_BURST_COUNT 8
 
 /* GLOBALS */
+uint8_t quitThreads = 0;
 
 /* EXTERN */
 extern uint8_t  sigusr2Flag;
+extern uint8_t doStatsDisplay;
 extern const char   arp[ARP_MAXCOUNT][600];
 extern const char icmp4[ICMP4_MAXCOUNT][1000];
 extern const char icmp6[ICMP6_MAXCOUNT][1000];
@@ -33,6 +35,157 @@ extern port_config_t config [PKTGEN_MAXPORTS];
 extern numa_Info_t numaNodeInfo[MAX_NUMANODE];
 extern pkt_stats_t prtPktStats [PKTGEN_MAXPORTS];
 
+
+void sigExtraStats(__attribute__((unused)) int signo)
+{
+    doStatsDisplay = 0;
+
+    /* clear screen */
+    STATS_CLR_SCREEN;
+
+    show_static_display();
+
+    doStatsDisplay = 1;
+    return;
+}
+
+void sigConfig(__attribute__((unused)) int signo)
+{
+    int8_t port = 0, ports = rte_eth_dev_count();
+    int32_t ret;
+
+    doStatsDisplay = 0;
+
+    /* clear screen */
+    STATS_CLR_SCREEN;
+    printf("\033[11;2H" RED "Reading CONFIG File!!!" RESET);
+
+    fflush(stdout);
+
+    /* stop lcore pkt gen work threads */
+    quitThreads =  1;
+
+    /*wait for 1 sec across threads to update */
+    rte_delay_ms(4000);
+
+    /* call config read */
+    ret = loadConfig();
+    if (unlikely(ret < 0))
+    {
+        printf("\n ERROR: failed to load config\n");
+    }
+
+    /* prepare worker threads data */
+    for (port = 0; port < ports; port++) 
+    {
+      /* validate as per traffic selection */
+      if((config[port].type == ARP) ) {
+          if (unlikely(config[port].pktIndex >= 
+                     (int)(sizeof(arp)/sizeof(arp[0]))) ) {
+              printf("\n ERROR: Max Pkt for U %d %d\n",
+                      (int)(sizeof(arp)/sizeof(arp[0])), 
+                      config[port].pktIndex);
+              return;
+           }
+           config[port].pktSize = arpSize[config[port].pktIndex];
+      }
+      else if((config[port].type == ICMP4)){
+          if (unlikely(config[port].pktIndex >=
+                     (int)(sizeof(icmp4)/sizeof(icmp4[0]))) ) {
+              printf("\n Max Pkt for  C %d %d\n",
+                      (int)(sizeof(icmp4)/sizeof(icmp4[0])),
+                      config[port].pktIndex);
+              return;
+           }
+           config[port].pktSize = icmp4Size[config[port].pktIndex];
+      }
+      else if((config[port].type == ICMP6)){
+          if (unlikely(config[port].pktIndex >=
+                     (int)(sizeof(icmp6)/sizeof(icmp6[0]))) ) {
+              printf("\n Max Pkt for  C %d %d\n",
+                      (int)(sizeof(icmp6)/sizeof(icmp6[0])),
+                      config[port].pktIndex);
+              return;
+           }
+          config[port].pktSize = icmp6Size[config[port].pktIndex];
+      }
+      else if((config[port].type == IPV4)){
+          if (unlikely(config[port].pktIndex >=
+                     (int)(sizeof(ipv4)/sizeof(ipv4[0]))) ) {
+              printf("\n Max Pkt for  C %d %d\n",
+                      (int)(sizeof(ipv4)/sizeof(ipv4[0])),
+                      config[port].pktIndex);
+              return;
+           }
+          config[port].pktSize = ipv4Size[config[port].pktIndex];
+      }
+      else if((config[port].type == IPV6)){
+          if (unlikely(config[port].pktIndex >=
+                     (int)(sizeof(ipv6)/sizeof(ipv6[0]))) ) {
+              printf("\n Max Pkt for  C %d %d\n",
+                      (int)(sizeof(ipv6)/sizeof(ipv6[0])),
+                      config[port].pktIndex);
+              return;
+           }
+          config[port].pktSize = ipv6Size[config[port].pktIndex];
+      }
+      else if((config[port].type == TCP4)){
+          if (unlikely(config[port].pktIndex >=
+                     (int)(sizeof(tcp4)/sizeof(tcp4[0]))) ) {
+              printf("\n Max Pkt for  C %d %d\n",
+                      (int)(sizeof(tcp4)/sizeof(tcp4[0])),
+                      config[port].pktIndex);
+              return;
+           }
+          config[port].pktSize = tcp4Size[config[port].pktIndex];
+      }
+      else if((config[port].type == TCP6)){
+          if (unlikely(config[port].pktIndex >=
+                     (int)(sizeof(tcp6)/sizeof(tcp6[0]))) ) {
+              printf("\n Max Pkt for  C %d %d\n",
+                      (int)(sizeof(tcp6)/sizeof(tcp6[0])),
+                      config[port].pktIndex);
+              return;
+           }
+          config[port].pktSize = tcp6Size[config[port].pktIndex];
+      }
+      else if((config[port].type == UDP4)){
+          if (unlikely(config[port].pktIndex >=
+                     (int)(sizeof(udp4)/sizeof(udp4[0]))) ) {
+              printf("\n Max Pkt for  C %d %d\n",
+                      (int)(sizeof(udp4)/sizeof(udp4[0])),
+                      config[port].pktIndex);
+              return;
+           }
+          config[port].pktSize = udp4Size[config[port].pktIndex];
+      }
+      else if((config[port].type == UDP6)){
+          if (unlikely(config[port].pktIndex >=
+                     (int)(sizeof(udp6)/sizeof(udp6[0]))) ) {
+              printf("\n Max Pkt for  C %d %d\n",
+                      (int)(sizeof(udp6)/sizeof(udp6[0])),
+                      config[port].pktIndex);
+              return;
+           }
+          config[port].pktSize = udp6Size[config[port].pktIndex];
+      }
+      else {
+          printf("\n Prt %d,  \n - Type %d \n , \n Pkt %d", 
+                  port,
+                  config[port].type,
+                  config[port].pktIndex);
+          return;
+      }
+    }
+
+    quitThreads =  0;
+    doStatsDisplay = 1;
+    show_static_display();
+
+    fflush(stdout);
+
+    return;
+}
 
 /*
    Generate traffic 
@@ -168,6 +321,7 @@ static int pktgenHandler(void *arg)
             }
         }
 
+        ret = 0;
         for(i = 0; i < MAX_TX_BURST_COUNT; i++ )
         {
             ptr[i] = rte_pktmbuf_alloc(mbuf_pool_tx);

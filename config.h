@@ -26,32 +26,21 @@
 #define CONFIGFILE      "config.ini"
 #define PKTGEN_INTFTAG  "INTF_"
 
-#define PKTGEN_MAXPORTS 8
-#define ARP_MAXCOUNT 2
-#define ICMP4_MAXCOUNT 2
-#define ICMP6_MAXCOUNT 2
-#define IPV4_MAXCOUNT 4
-#define IPV6_MAXCOUNT 4
-#define TCP4_MAXCOUNT 4
-#define TCP6_MAXCOUNT 4
-#define UDP4_MAXCOUNT 4
-#define UDP6_MAXCOUNT 4
-
 #define MAX_NUMANODE    4
 #define MAX_LCORECOUNT  32
 #define MAX_INTFCOUNT   4
+#define PKTGEN_MAXPORTS 8
 
-typedef enum {
-ARP,
-ICMP4,
-ICMP6,
-IPV4,
-IPV6,
-TCP4,
-TCP6,
-UDP4,
-UDP6, 
-} pktType;
+#define ARP_MAXCOUNT   2
+#define ICMP4_MAXCOUNT 2
+#define ICMP6_MAXCOUNT 2
+#define IPV4_MAXCOUNT  4
+#define IPV6_MAXCOUNT  4
+#define TCP4_MAXCOUNT  4
+#define TCP6_MAXCOUNT  4
+#define UDP4_MAXCOUNT  4
+#define UDP6_MAXCOUNT  4
+
 
 #define NB_MBUF   (8192 * 2)
 #define MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
@@ -71,6 +60,17 @@ UDP6,
 
 #define ARP_RESPONSE {0xd4, 0xbe, 0xd9, 0xd5, 0x35, 0x71, 0x78, 0x2b,0xcb, 0xab, 0x57, 0x3a, 0x08, 0x06, 0x00, 0x01, 0x08, 0x00, 0x06, 0x04, 0x00, 0x02, 0x78, 0x2b, 0xcb, 0xab, 0x57, 0x3a, 0xac, 0x14, 0x01, 0x36, 0xd4, 0xbe, 0xd9, 0xd5, 0x35, 0x71, 0xac, 0x14, 0x01, 0x52, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 
+typedef enum {
+ARP,
+ICMP4,
+ICMP6,
+IPV4,
+IPV6,
+TCP4,
+TCP6,
+UDP4,
+UDP6, 
+} pktType;
 
 /* PKT-BLSTER per port data */
 typedef struct port_config_s {

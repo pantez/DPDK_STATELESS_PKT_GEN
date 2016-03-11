@@ -12,32 +12,6 @@ uint8_t sigusr2Flag = 0;
 extern port_config_t config [PKTGEN_MAXPORTS];
 extern numa_Info_t numaNodeInfo[MAX_NUMANODE];
 
-void sigExtraStats(__attribute__((unused)) int signo)
-{
-    doStatsDisplay = 0;
-
-    /* clear screen */
-    STATS_CLR_SCREEN;
-
-    show_static_display();
-
-    doStatsDisplay = 1;
-    return;
-}
-
-void sigConfig(__attribute__((unused)) int signo)
-{
-    sigusr2Flag = 0x01;
-    /*Add Delay*/
-    rte_delay_ms(100);
-    /*Load Config file Again*/
-    loadConfig();
-    sigusr2Flag = 0x00;
-    /*Lauch Threads again*/
-    launchNumaThread();
-    return;
-}
-
 void get_link_stats(__attribute__((unused)) struct rte_timer *t, 
                     __attribute__((unused)) void *arg)
 {
